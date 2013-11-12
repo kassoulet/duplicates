@@ -135,7 +135,6 @@ def deduplicate(matches):
         if verbose: print('**', o, so.st_ino, so.st_nlink)
         for x in l:
             d = x[0]
-            tmp = d+'~'
             sd = os.stat(d)
             if verbose:  print('->', d, sd.st_ino, sd.st_nlink)
             if so.st_dev != sd.st_dev:
@@ -143,36 +142,32 @@ def deduplicate(matches):
                 if verbose:
                     print('    not on the same filesystem')
                 continue
-            if (sd.st_mode != so.st_mode or 
-                sd.st_uid != so.st_uid or
+            if (sd.st_uid != so.st_uid or
                 sd.st_gid != so.st_gid):
+                # we must not link files if they haven't the same owner.
                 if verbose:
-                    print('    not the same mode/owner!')
+                    print('    not the same owner!')
                 continue
+            tmp = d+'~'
             try:
-                #os.rename(d, tmp)
+                # rename to temp file
+                os.rename(d, tmp)
                 try:
-                    #os.link(o, d)
-
-                    # en mode dedup, pas besoin de scanner si les modes sont differents
-
-                    # inode contains the ownership and times.
-                    #so we can't save them at all.
-                    #creating softlinks is far more dangerous
-                    #maybe we can just verify that modes are the same before linking. Else this is an obvious security breach.
-                       
-                    #shutil.copystat(tmp, d) #XXX
-                    #stat = os.stat(d) #XXX
-                    #os.chown(d, stat.st_uid, stat.st_gid)
-                    #os.remove(tmp)
+                    # create hardlink
+                    os.link(o, d)
+                    # copy permissions and times from temp file
+                    shutil.copystat(tmp, d)
+                    # remove temp file
+                    os.remove(tmp)
                     linked_size += x[1]
                     linked_files += 1
                 except OSError:
+                    # error while linking, revert!
                     print('cannot link:', o , '->', d)
-                    #os.rename(tmp, d)
+                    os.rename(tmp, d)
             except OSError:
-                print('cannot rename:', d , '->', tmp)
-        
+                print('cannot create temporary file:', d , '->', tmp)
+
     print("Deduplicated %d files, %sB." % (linked_files, humanize_size(linked_size)))
 
 

@@ -123,8 +123,7 @@ class DuplicateFinder:
         self.totalfiles += 1
         self.totalsize += size
 
-    def process(self, progress_listener=None, skip_md5=False,
-                only_full_matches=True):
+    def process(self, progress_listener=None):
         """
         Check for duplicates.
         """
@@ -149,8 +148,7 @@ class DuplicateFinder:
                 refsize = os.path.getsize(refname)
             except OSError:
                 continue
-            refmd5 = get_file_hash(refname) if not skip_md5 else 'skipped'
-            #print '%10d   %s' % (refsize, refname)
+            refmd5 = get_file_hash(refname)
             match = []
             match.append([refname, refsize, refmd5])
             scanned += 1
@@ -163,15 +161,11 @@ class DuplicateFinder:
                     size = os.path.getsize(filename)
                 except OSError:
                     continue
-                md5 = get_file_hash(filename) if not skip_md5 else 'skipped'
+                md5 = get_file_hash(filename)
 
                 if not os.path.samefile(refname, filename):
-                    if md5 != refmd5:
-                        if not only_full_matches:
-                            match.append([filename, size, md5])
-                    else:
+                    if md5 == refmd5:
                         match.append([filename, size, md5])
-
                     self.dupsize += size
                     
                 scanned += 1
@@ -182,8 +176,7 @@ class DuplicateFinder:
             matches.append(match)
             if progress_listener:
                 progress_listener(scanned, to_scan, match)
-            #print
-        
+
         # remove matches with less than 2 files
         partials = []
         for i,m in enumerate(matches):
@@ -203,5 +196,4 @@ def scan(folders, minimal_size, follow_links,
         if add_file_callback:
             add_file_callback(f)
     return finder.process(add_match_callback)
-    
     

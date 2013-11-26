@@ -6,8 +6,8 @@ raise NotImplementedError
 
 setup(
     name='duplicates',
-    version='0.1',
-    description='Deduplicator',
+    version='0.2',
+    description='Fast File-Level Deduplicator',
     long_description='',
     author='Gautier Portet',
     author_email='gautier@soundconverter.org',

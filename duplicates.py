@@ -152,7 +152,7 @@ def get_file_hash(filename, limit_size=None):
     f.close()
     return hasher.hexdigest()
 
-
+blacklist_folders = ('.svn', 'Trash')
 def getfiles(*args):
     global selected_files
     global size_files
@@ -187,10 +187,11 @@ def getfiles(*args):
                     selected_files += 1
                     size_files += filesize
                     yield '%s%s%s' % (filesize, SEPARATOR, filename)
-            if '.svn' in dirs:
-                # skip subversion folders.
-                log('skipping:', os.path.join(root, '.svn'))
-                dirs.remove('.svn')
+            for blacklisted in blacklist_folders:
+                # skip blacklisted folders.
+                if blacklisted in dirs:
+                    log('skipping:', os.path.join(root, blacklisted))
+                    dirs.remove(blacklisted)
 
 
 def size(filename):
@@ -289,17 +290,20 @@ saved_bytes = 0
 def dedup_match(group, group_number, sid):
     for f in group[1:]:
         log('%s -> %s' % (group[0], f))
-        global saved_bytes
-        saved_bytes += size(f)
+        tmp = f + '~D~'
         try:
-            os.unlink(f)
-        except OSError:
-            print('Cannot delete: "%s"!' % f)
-            continue
-        try:
+            os.rename(f, tmp)
             os.link(group[0], f)
+            global saved_bytes
+            saved_bytes += size(f)
         except OSError:
-            print('Cannot create link: "%s"!' % f)
+            print('Cannot create link: "%s"' % f)
+            os.rename(tmp, f)
+        try:
+            pass
+            os.unlink(tmp)
+        except OSError:
+            print('Cannot delete temporary file: "%s"' % tmp)
 
 # read files
 with open('%s.sizes' % tmppath, 'w') as tmpfiles:

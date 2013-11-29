@@ -14,8 +14,7 @@ A file is compared to others files, by using, in order:
  - hash of content
 
 This program uses temporary files and external "sort" to minimise memory
-utilization. Nothing is stored in memory.
-
+utilization.
 """
 
 __version__ = '0.2'
@@ -58,8 +57,8 @@ def expand_size_suffix(size):
 def parse_arguments():
     usage = "usage: %prog [options] folders"
     parser = OptionParser(usage=usage)
-    parser.add_option("-s", "--minimal-size", dest="minsize", default='0',
-                      help="Minimal size. Default to 0. (You can use size "
+    parser.add_option("-s", "--minimal-size", dest="minsize", default='1024',
+                      help="Minimal size. Default to 1KB. (You can use size "
                            "suffixes eg. 62 15k 47M 92G).")
     parser.add_option("-f", "--fix",
                       dest="deduplicate",
@@ -152,7 +151,7 @@ def get_file_hash(filename, limit_size=None):
     f.close()
     return hasher.hexdigest()
 
-blacklist_folders = ('.svn', 'Trash')
+blacklist_folders = ('.svn', 'Trash', '.git')
 def getfiles(*args):
     global selected_files
     global size_files
@@ -181,7 +180,6 @@ def getfiles(*args):
                     if skip_same_inode:
                         log('inode already read:', filename)
                         continue
-                #if skip_same_inode:
                 visited_inodes.add(stat.st_ino)
                 if filesize > minimal_size:
                     selected_files += 1
@@ -294,16 +292,12 @@ def dedup_match(group, group_number, sid):
         try:
             os.rename(f, tmp)
             os.link(group[0], f)
+            os.unlink(tmp)
             global saved_bytes
             saved_bytes += size(f)
         except OSError:
             print('Cannot create link: "%s"' % f)
             os.rename(tmp, f)
-        try:
-            pass
-            os.unlink(tmp)
-        except OSError:
-            print('Cannot delete temporary file: "%s"' % tmp)
 
 # read files
 with open('%s.sizes' % tmppath, 'w') as tmpfiles:

@@ -1,7 +1,7 @@
 Duplicates - Fast File-Level Deduplicator
 =========================================
 
-Duplicates use a fast algorithm, try to early reject false positives.
+Duplicates use a fast algorithm, to early reject false positives.
 
 A file is compared to others files, by using, in order:
  - size
@@ -9,7 +9,7 @@ A file is compared to others files, by using, in order:
  - hash of content
 
 This program uses temporary files and external sort to minimise memory 
-utilization. Nothing is stored in memory.
+utilization.
 
 © 2013 Gautier Portet
 

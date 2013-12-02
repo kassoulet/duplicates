@@ -1,7 +1,7 @@
 Duplicates - Fast File-Level Deduplication
 ==========================================
 
-Duplicates use a very fast algorithm, to early reject false positives.
+Duplicates uses a very fast algorithm, to early reject false positives.
 
 A file is compared to others files, by using, in order:
  - its size,

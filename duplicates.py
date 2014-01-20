@@ -4,7 +4,7 @@
 
 """
 Duplicates - Fast File-Level Deduplicator
-© 2013 Gautier Portet - <kassoulet gmail com>
+© 2013-2014 Gautier Portet - <kassoulet gmail com>
 
 Duplicates use a fast algorithm, to early reject false positives.
 
@@ -17,7 +17,7 @@ This program uses temporary files and external "sort" to minimise memory
 utilization.
 """
 
-__version__ = '0.2'
+__version__ = '0.3'
 __author__ = 'Gautier Portet'
 
 print('duplicates %s' % __version__)
@@ -291,20 +291,27 @@ def dedup_match(group, group_number, sid):
         tmp = f + '~D~'
         try:
             os.rename(f, tmp)
+        except:
+            print('Cannot remove file: %s' % f)
+            continue
+        try:
             os.link(group[0], f)
             os.unlink(tmp)
             global saved_bytes
             saved_bytes += size(f)
-        except OSError:
-            print('Cannot create link: "%s"' % f)
+        except:
+            print('Cannot create link: %s' % f)
             os.rename(tmp, f)
 
 # read files
 with open('%s.sizes' % tmppath, 'w') as tmpfiles:
     for f in getfiles():
-        tmpfiles.write(f + '\n')
-        walked_files += 1
-        update_progress('Scanning... %(indeterminate)s (%(walked_files)s files)\r')
+        try:
+            tmpfiles.write(f + '\n')
+            walked_files += 1
+            update_progress('Scanning... %(indeterminate)s (%(walked_files)s files)\r')
+        except UnicodeEncodeError:
+            pass
     update_progress('Found %(walked_files)s files.           \n', force_progress=True)
 os.system('sort %s.sizes > %s.sizes.sorted' % (tmppath, tmppath))
 os.unlink('%s.sizes' % tmppath)

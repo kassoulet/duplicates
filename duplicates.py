@@ -286,7 +286,11 @@ def print_match(group, group_number, sid):
 
 saved_bytes = 0
 def dedup_match(group, group_number, sid):
+    global saved_bytes
     for f in group[1:]:
+        if size(f) is None or size(group[0]) is None:
+            print('skipping unreadable file: %s' % f)
+            continue
         log('%s -> %s' % (group[0], f))
         tmp = f + '~D~'
         try:
@@ -297,8 +301,7 @@ def dedup_match(group, group_number, sid):
         try:
             os.link(group[0], f)
             os.unlink(tmp)
-            global saved_bytes
-            saved_bytes += size(f)
+            saved_bytes += size(group[0])
         except:
             print('Cannot create link: %s' % f)
             os.rename(tmp, f)

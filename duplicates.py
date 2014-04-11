@@ -209,7 +209,8 @@ def fasthash(filename):
 def fullhash(filename):
     global fullhashed
     fullhashed += 1
-    if size(filename) <= 1024:
+    filesize = size(filename)
+    if filesize is None or filesize <= 1024:
         return 'skipped'
     return get_file_hash(filename)
 
